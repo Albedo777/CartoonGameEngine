@@ -269,6 +269,8 @@ namespace PixelInspector
 			return EMaterialShadingModel::MSM_SingleLayerWater;
 		case PIXEL_INSPECTOR_SHADINGMODELID_THIN_TRANSLUCENT:
 			return EMaterialShadingModel::MSM_ThinTranslucent;
+		case PIXEL_INSPECTOR_SHADINGMODELID_CARTOON:
+			return EMaterialShadingModel::MSM_Cartoon;
 		};
 		return EMaterialShadingModel::MSM_DefaultLit;
 	}

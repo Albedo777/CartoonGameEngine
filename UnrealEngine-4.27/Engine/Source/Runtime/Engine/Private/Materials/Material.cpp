@@ -3229,7 +3229,7 @@ void UMaterial::Serialize(FArchive& Ar)
 	}
 #endif // #if WITH_EDITOR
 
-	static_assert(MP_MAX == 32, "New material properties must have DoMaterialAttributeReorder called on them to ensure that any future reordering of property pins is correctly applied.");
+	static_assert(MP_MAX == 33, "New material properties must have DoMaterialAttributeReorder called on them to ensure that any future reordering of property pins is correctly applied.");
 
 	if (Ar.UE4Ver() < VER_UE4_MATERIAL_MASKED_BLENDMODE_TIDY)
 	{
@@ -3502,6 +3502,7 @@ void UMaterial::PostLoad()
 	DoMaterialAttributeReorder(&CustomizedUVs[7], UE4Ver, RenderObjVer);
 	DoMaterialAttributeReorder(&PixelDepthOffset, UE4Ver, RenderObjVer);
 	DoMaterialAttributeReorder(&ShadingModelFromMaterialExpression, UE4Ver, RenderObjVer);
+	DoMaterialAttributeReorder(&ShadowColor, UE4Ver, RenderObjVer);
 #endif // WITH_EDITORONLY_DATA
 
 	if (!IsDefaultMaterial())
@@ -4931,6 +4932,7 @@ FExpressionInput* UMaterial::GetExpressionInputForProperty(EMaterialProperty InP
 		case MP_MaterialAttributes:		return &MaterialAttributes;
 		case MP_PixelDepthOffset:		return &PixelDepthOffset;
 		case MP_ShadingModel:			return &ShadingModelFromMaterialExpression;
+		case MP_ShadowColor:			return &ShadowColor;
 	}
 
 	if (InProperty >= MP_CustomizedUVs0 && InProperty <= MP_CustomizedUVs7)
@@ -5509,7 +5511,8 @@ int32 UMaterial::CompilePropertyEx( FMaterialCompiler* Compiler, const FGuid& At
 		case MP_WorldDisplacement:		return WorldDisplacement.CompileWithDefault(Compiler, Property);
 		case MP_PixelDepthOffset:		return PixelDepthOffset.CompileWithDefault(Compiler, Property);
 		case MP_ShadingModel:			return ShadingModelFromMaterialExpression.CompileWithDefault(Compiler, Property);
-
+		case MP_ShadowColor:			return ShadowColor.CompileWithDefault(Compiler, Property);
+		
 		default:
 			if (Property >= MP_CustomizedUVs0 && Property <= MP_CustomizedUVs7)
 			{
@@ -5965,10 +5968,10 @@ static bool IsPropertyActive_Internal(EMaterialProperty InProperty,
 		Active = ShadingModels.HasAnyShadingModel({ MSM_Subsurface, MSM_PreintegratedSkin, MSM_TwoSidedFoliage, MSM_Cloth });
 		break;
 	case MP_CustomData0:
-		Active = ShadingModels.HasAnyShadingModel({ MSM_ClearCoat, MSM_Hair, MSM_Cloth, MSM_Eye });
+		Active = ShadingModels.HasAnyShadingModel({ MSM_ClearCoat, MSM_Hair, MSM_Cloth, MSM_Eye, MSM_Cartoon });
 		break;
 	case MP_CustomData1:
-		Active = ShadingModels.HasAnyShadingModel({ MSM_ClearCoat, MSM_Eye });
+		Active = ShadingModels.HasAnyShadingModel({ MSM_ClearCoat, MSM_Eye, MSM_Cartoon });
 		break;
 	case MP_TessellationMultiplier:
 	case MP_WorldDisplacement:
@@ -5987,7 +5990,10 @@ static bool IsPropertyActive_Internal(EMaterialProperty InProperty,
 		break;
 	case MP_ShadingModel:
 		Active = bUsesShadingModelFromMaterialExpression;
-                break;
+		break;
+	case MP_ShadowColor:
+		Active = ShadingModels.HasAnyShadingModel({ MSM_Cartoon });
+		break;
 	case MP_MaterialAttributes:
 	default:
 		Active = true;

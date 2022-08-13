@@ -711,6 +711,11 @@ void Main(
 
 	half Shadow = GetPrimaryPrecomputedShadowMask(LightmapVTPageTableResult, Interpolants).r;
 
+#if MATERIAL_SHADINGMODEL_CARTOON
+	half CustomShadow = GetMaterialCustomData1(MaterialParameters);
+	Shadow = min(Shadow, CustomShadow);
+#endif
+
 #if DEFERRED_SHADING_PATH
 	float4 OutGBufferD;
 	float4 OutGBufferE;
@@ -759,14 +764,23 @@ void Main(
 	half3 H = normalize(MaterialParameters.CameraVector + MobileDirectionalLight.DirectionalLightDirectionAndShadowTransition.xyz);
 	half NoH = max(0, dot(MaterialParameters.WorldNormal, H));
 
+#if MATERIAL_SHADINGMODEL_CARTOON
+	float3 ShadowColor = PixelMaterialInputs.ShadowColor.xyz;
+	NoL = max(0, GetMaterialCustomData0(MaterialParameters));
+#endif
+	
 	// Direct Lighting (Directional light) + IBL
 #if FULLY_ROUGH
 	Color += (Shadow * NoL) * MobileDirectionalLight.DirectionalLightColor.rgb * ShadingModelContext.DiffuseColor;
 #else
 	FMobileDirectLighting Lighting = MobileIntegrateBxDF(ShadingModelContext, GBuffer, NoL, MaterialParameters.CameraVector, H, NoH);
 	// MobileDirectionalLight.DirectionalLightDistanceFadeMADAndSpecularScale.z saves SpecularScale for direction light.
-	Color += (Shadow) * MobileDirectionalLight.DirectionalLightColor.rgb * (Lighting.Diffuse + Lighting.Specular * MobileDirectionalLight.DirectionalLightDistanceFadeMADAndSpecularScale.z);
-
+	#if MATERIAL_SHADINGMODEL_CARTOON
+		half3 BaseColor = lerp(ShadowColor, GBuffer.BaseColor, NoL * Shadow);
+		Color += BaseColor * (MobileDirectionalLight.DirectionalLightColor.rgb + IndirectColor.rgb);	
+	#else
+		Color += (Shadow) * MobileDirectionalLight.DirectionalLightColor.rgb * (Lighting.Diffuse + Lighting.Specular * MobileDirectionalLight.DirectionalLightDistanceFadeMADAndSpecularScale.z);
+	#endif
 #if	!(MATERIAL_SINGLE_SHADINGMODEL && MATERIAL_SHADINGMODEL_HAIR)
 	// Environment map has been prenormalized, scale by lightmap luminance
 	half3 SpecularIBL = GetImageBasedReflectionLighting(MaterialParameters, GBuffer.Roughness, IndirectIrradiance, 1.0f);

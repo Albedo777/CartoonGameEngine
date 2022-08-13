@@ -15,7 +15,8 @@
 #define SHADINGMODELID_EYE					9
 #define SHADINGMODELID_SINGLELAYERWATER		10
 #define SHADINGMODELID_THIN_TRANSLUCENT		11
-#define SHADINGMODELID_NUM					12
+#define SHADINGMODELID_CARTOON		        12
+#define SHADINGMODELID_NUM					13
 #define SHADINGMODELID_MASK					0xF		// 4 bits reserved for ShadingModelID			
 
 // The flags are defined so that 0 value has no effect!
@@ -52,6 +53,7 @@ float3 GetShadingModelColor(uint ShadingModelID)
 	else if (ShadingModelID == SHADINGMODELID_EYE) return float3(0.3f, 1.0f, 1.0f); 
 	else if (ShadingModelID == SHADINGMODELID_SINGLELAYERWATER) return float3(0.5f, 0.5f, 1.0f);
 	else if (ShadingModelID == SHADINGMODELID_THIN_TRANSLUCENT) return float3(1.0f, 0.8f, 0.3f);
+	else if (ShadingModelID == SHADINGMODELID_CARTOON) return float3(0.4f, 0.0f, 0.8f);
 	else return float3(1.0f, 1.0f, 1.0f); // White
 #else
 	switch(ShadingModelID)
@@ -68,6 +70,7 @@ float3 GetShadingModelColor(uint ShadingModelID)
 		case SHADINGMODELID_EYE: return float3(0.3f, 1.0f, 1.0f);
 		case SHADINGMODELID_SINGLELAYERWATER: return float3(0.5f, 0.5f, 1.0f);
 		case SHADINGMODELID_THIN_TRANSLUCENT: return float3(1.0f, 0.8f, 0.3f);
+		case SHADINGMODELID_CARTOON: return float3(0.4f, 0.0f, 0.8f);
 		default: return float3(1.0f, 1.0f, 1.0f); // White
 	}
 #endif

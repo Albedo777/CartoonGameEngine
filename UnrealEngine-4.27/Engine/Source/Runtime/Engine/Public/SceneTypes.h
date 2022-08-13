@@ -181,7 +181,8 @@ enum EMaterialProperty
 	MP_CustomizedUVs7 UMETA(Hidden),
 	MP_PixelDepthOffset UMETA(Hidden),
 	MP_ShadingModel UMETA(Hidden),
-
+	MP_ShadowColor UMETA(Hidden),
+	
 	//^^^ New material properties go above here ^^^^
 	MP_MaterialAttributes UMETA(Hidden),
 	MP_CustomOutput UMETA(Hidden),
